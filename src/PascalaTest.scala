@@ -10,7 +10,7 @@ object PascalaTest extends Pascala {
   'count2 := 22
 
   Write (2)
-  Write ('count + 2)
+  Write ('count + 2 + 2)
   Write ('count + 'count)
   Write ('count + 'count2)
 

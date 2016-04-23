@@ -53,6 +53,15 @@ class Pascala extends App {
 
   case class EvalFunction(lhs: Symbol) {
     def +(rhs: Int): Function0[Int] = () => ints(lhs) + rhs
+    def +(rhs: Function0[Any]): Function0[Any] = {
+      if (ints.contains(lhs)) {
+        () => ints(lhs) + rhs().asInstanceOf[Int]
+      } else if (doubles.contains(lhs)) {
+        () => doubles(lhs) + rhs().asInstanceOf[Double]
+      } else {
+        () => strings(lhs) + rhs().asInstanceOf[String]
+      }
+    }
     def +(rhs: Double): Function0[Double] = () => doubles(lhs) + rhs
     def +(rhs: String): Function0[String] = () => strings(lhs) + rhs
     def +(rhs: Symbol): Function0[Any] = {
@@ -64,18 +73,21 @@ class Pascala extends App {
         () => strings(lhs) + strings(rhs)
       }
     }
+  }
 
-
-//    def >(rhs: Int): Boolean = ints(lhs) > rhs
-//    def >=(rhs: Int): Boolean = ints(lhs) >= rhs
-//    def ==(rhs: Int): Boolean = ints(lhs) == rhs
-//    def <(rhs: Int): Boolean = ints(lhs) < rhs
-//    def <=(rhs: Int): Boolean = ints(lhs) <= rhs
-//    def <>(rhs: Int): Boolean = ints(lhs) != rhs
-//    def and(rhs: Boolean): Boolean = bools(lhs) && rhs\
-//    def and(rhs: Symbol): Boolean = bools(lhs) && bools(rhs)
-//    def or(rhs: Boolean): Boolean = bools(lhs) || rhs
-//    def or(rhs: Symbol): Boolean = bools(lhs) || bools(rhs)
+  case class EvalFunction2(lhs: Function0[Any]) {
+    def +(rhs: Int): Function0[Int] = () => lhs().asInstanceOf[Int] + rhs
+    def +(rhs: Double): Function0[Double] = () => lhs().asInstanceOf[Double] + rhs
+    def +(rhs: String): Function0[String] = () => lhs().asInstanceOf[String] + rhs
+    def +(rhs: Symbol): Function0[Any] = {
+      if (ints.contains(rhs)) {
+        () => lhs().asInstanceOf[Int] + ints(rhs)
+      } else if (doubles.contains(rhs)) {
+        () => lhs().asInstanceOf[Double] + doubles(rhs)
+      } else {
+        () => lhs().asInstanceOf[String] + strings(rhs)
+      }
+    }
   }
 
   object Program {
@@ -117,5 +129,6 @@ class Pascala extends App {
 
 
   implicit def symbol2Val(sym: Symbol) = EvalFunction(sym)
+  implicit def functio2BetterFunction(fn: Function0[Any]) = EvalFunction2(fn)
   implicit def symbol2Assignment(sym:Symbol) = Assignment(sym)
 }
