@@ -51,7 +51,7 @@ class Pascala extends App {
     def :=(b: Boolean): Unit = bools(sym) = b
   }
 
-  case class EvalFunction(lhs: Symbol) {
+  case class EvalSymbol(lhs: Symbol) {
     def +(rhs: Int): Function0[Int] = () => ints(lhs) + rhs
     def +(rhs: Function0[Any]): Function0[Any] = {
       if (ints.contains(lhs)) {
@@ -69,13 +69,72 @@ class Pascala extends App {
         () => ints(lhs) + ints(rhs)
       } else if (doubles.contains(rhs)) {
         () => doubles(lhs) + doubles(rhs)
-      } else {
+      } else if (strings.contains(rhs)) {
         () => strings(lhs) + strings(rhs)
+      } else {
+        throw new IllegalStateException("Cannot use plus operator with booleans.")
+      }
+    }
+
+    def -(rhs: Int): Function0[Int] = () => ints(lhs) - rhs
+    def -(rhs: Double): Function0[Double] = () => doubles(lhs) - rhs
+    def -(rhs: Function0[Any]): Function0[Any] = {
+      if (ints.contains(lhs)) {
+        () => ints(lhs) - rhs().asInstanceOf[Int]
+      } else {
+        () => doubles(lhs) - rhs().asInstanceOf[Double]
+      }
+    }
+    def -(rhs: Symbol): Function0[Any] = {
+      if (ints.contains(rhs)) {
+        () => ints(lhs) - ints(rhs)
+      } else if (doubles.contains(rhs)) {
+        () => doubles(lhs) - doubles(rhs)
+      } else {
+        throw new IllegalStateException("Cannot use minus operator with strings or booleans.")
+      }
+    }
+
+    def *(rhs: Int): Function0[Int] = () => ints(lhs) * rhs
+    def *(rhs: Double): Function0[Double] = () => doubles(lhs) * rhs
+    def *(rhs: Function0[Any]): Function0[Any] = {
+      if (ints.contains(lhs)) {
+        () => ints(lhs) * rhs().asInstanceOf[Int]
+      } else {
+        () => doubles(lhs) * rhs().asInstanceOf[Double]
+      }
+    }
+    def *(rhs: Symbol): Function0[Any] = {
+      if (ints.contains(rhs)) {
+        () => ints(lhs) * ints(rhs)
+      } else if (doubles.contains(rhs)) {
+        () => doubles(lhs) * doubles(rhs)
+      } else {
+        throw new IllegalStateException("Cannot use multiplication operator with strings or booleans.")
+      }
+    }
+
+    def div(rhs: Int): Function0[Int] = () => ints(lhs) / rhs
+    def div(rhs: Double): Function0[Double] = () => doubles(lhs) / rhs
+    def div(rhs: Function0[Any]): Function0[Any] = {
+      if (ints.contains(lhs)) {
+        () => ints(lhs) / rhs().asInstanceOf[Int]
+      } else {
+        () => doubles(lhs) / rhs().asInstanceOf[Double]
+      }
+    }
+    def div(rhs: Symbol): Function0[Any] = {
+      if (ints.contains(rhs)) {
+        () => ints(lhs) / ints(rhs)
+      } else if (doubles.contains(rhs)) {
+        () => doubles(lhs) / doubles(rhs)
+      } else {
+        throw new IllegalStateException("Cannot use multiplication operator with strings or booleans.")
       }
     }
   }
 
-  case class EvalFunction2(lhs: Function0[Any]) {
+  case class EvalFunction0(lhs: Function0[Any]) {
     def +(rhs: Int): Function0[Int] = () => lhs().asInstanceOf[Int] + rhs
     def +(rhs: Double): Function0[Double] = () => lhs().asInstanceOf[Double] + rhs
     def +(rhs: String): Function0[String] = () => lhs().asInstanceOf[String] + rhs
@@ -84,8 +143,46 @@ class Pascala extends App {
         () => lhs().asInstanceOf[Int] + ints(rhs)
       } else if (doubles.contains(rhs)) {
         () => lhs().asInstanceOf[Double] + doubles(rhs)
-      } else {
+      } else if (strings.contains(rhs)) {
         () => lhs().asInstanceOf[String] + strings(rhs)
+      } else {
+        throw new IllegalStateException("Cannot use plus operator with booleans.")
+      }
+    }
+
+    def -(rhs: Int): Function0[Int] = () => lhs().asInstanceOf[Int] - rhs
+    def -(rhs: Double): Function0[Double] = () => lhs().asInstanceOf[Double] - rhs
+    def -(rhs: Symbol): Function0[Any] = {
+      if (ints.contains(rhs)) {
+        () => lhs().asInstanceOf[Int] - ints(rhs)
+      } else if (doubles.contains(rhs)) {
+        () => lhs().asInstanceOf[Double] - doubles(rhs)
+      } else {
+        throw new IllegalStateException("Cannot use minus operator with booleans or strings.")
+      }
+    }
+
+    def *(rhs: Int): Function0[Int] = () => lhs().asInstanceOf[Int] * rhs
+    def *(rhs: Double): Function0[Double] = () => lhs().asInstanceOf[Double] * rhs
+    def *(rhs: Symbol): Function0[Any] = {
+      if (ints.contains(rhs)) {
+        () => lhs().asInstanceOf[Int] * ints(rhs)
+      } else if (doubles.contains(rhs)) {
+        () => lhs().asInstanceOf[Double] * doubles(rhs)
+      } else {
+        throw new IllegalStateException("Cannot use multiplication operator with booleans or strings.")
+      }
+    }
+
+    def div(rhs: Int): Function0[Int] = () => lhs().asInstanceOf[Int] / rhs
+    def div(rhs: Double): Function0[Double] = () => lhs().asInstanceOf[Double] / rhs
+    def div(rhs: Symbol): Function0[Any] = {
+      if (ints.contains(rhs)) {
+        () => lhs().asInstanceOf[Int] / ints(rhs)
+      } else if (doubles.contains(rhs)) {
+        () => lhs().asInstanceOf[Double] / doubles(rhs)
+      } else {
+        throw new IllegalStateException("Cannot use multiplication operator with booleans or strings.")
       }
     }
   }
@@ -126,9 +223,7 @@ class Pascala extends App {
     }
   }
 
-
-
-  implicit def symbol2Val(sym: Symbol) = EvalFunction(sym)
-  implicit def functio2BetterFunction(fn: Function0[Any]) = EvalFunction2(fn)
+  implicit def symbol2Func(sym: Symbol) = EvalSymbol(sym)
+  implicit def func2Func(fn: Function0[Any]) = EvalFunction0(fn)
   implicit def symbol2Assignment(sym:Symbol) = Assignment(sym)
 }
