@@ -7,10 +7,11 @@ object PascalaTest extends Pascala {
 
   Begin
   'count := 20
-  'count2 := 5
+  'count2 := 40
 
   Write (2)
-  Write ('count div 'count2 * 2)
+  Write ('count + 5 div 'count)
+  Write ('count + 3 - 5 div 'count2 div 4)
 
   End
 

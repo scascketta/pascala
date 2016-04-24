@@ -173,6 +173,16 @@ class Pascala extends App {
         throw new IllegalStateException("Cannot use multiplication operator with booleans or strings.")
       }
     }
+    def *(rhs: Function0[Any]): Function0[Any] = {
+      lhs() match {
+        case i: Int =>
+          () => i * rhs().asInstanceOf[Int]
+        case d: Double =>
+          () => d * rhs().asInstanceOf[Double]
+        case _ =>
+          throw new IllegalStateException("Cannot use the multiplication operator without ints or doubles.")
+      }
+    }
 
     def div(rhs: Int): Function0[Int] = () => lhs().asInstanceOf[Int] / rhs
     def div(rhs: Double): Function0[Double] = () => lhs().asInstanceOf[Double] / rhs
@@ -182,7 +192,17 @@ class Pascala extends App {
       } else if (doubles.contains(rhs)) {
         () => lhs().asInstanceOf[Double] / doubles(rhs)
       } else {
-        throw new IllegalStateException("Cannot use multiplication operator with booleans or strings.")
+        throw new IllegalStateException("Cannot use division operator with booleans or strings.")
+      }
+    }
+    def div(rhs: Function0[Any]): Function0[Any] = {
+      lhs() match {
+        case i: Int =>
+          () => i / rhs().asInstanceOf[Int]
+        case d: Double =>
+          () => d / rhs().asInstanceOf[Double]
+        case _ =>
+          throw new IllegalStateException("Cannot use the division operator without ints or doubles.")
       }
     }
   }
@@ -197,6 +217,19 @@ class Pascala extends App {
     def apply(d: Double) = program.append(WriteSentence(d.toString))
     def apply(b: Boolean) = program.append(WriteSentence(b.toString))
     def apply(fn: Function0[Any]) = program.append(WriteSentence(fn().toString))
+    def apply(sym: Symbol) = program.append(WriteSentence(getSymVal(sym).toString))
+  }
+
+  def getSymVal(sym: Symbol) = {
+    if (ints.contains(sym)) {
+      ints(sym)
+    } else if (doubles.contains(sym)) {
+      doubles(sym)
+    } else if (strings.contains(sym)) {
+      strings(sym)
+    } else {
+      bools(sym)
+    }
   }
 
   def End = program.append(EndSentence())
