@@ -1,6 +1,7 @@
 
 import scala.collection.mutable
 import scala.language.dynamics
+import scala.util.control.Breaks
 
 class Pascala extends App {
   abstract sealed class Sentence
@@ -9,7 +10,10 @@ class Pascala extends App {
   case class EndSentence() extends Sentence
   case class WriteSentence(s: String) extends Sentence
   case class DeclareSentence(s: Symbol) extends Sentence
-  case class IfSentence(cond: Boolean) extends Sentence
+  case class IfSentence(cond: Function0[Boolean]) extends Sentence
+  case class ThenSentence(sen: Sentence) extends Sentence
+  case class ElseSentence(sen: Sentence) extends Sentence
+  case class ElseIfSentence(cond: Function0[Boolean]) extends Sentence
 
   var program = new mutable.ArrayBuffer[Sentence]
 
@@ -21,7 +25,6 @@ class Pascala extends App {
   // for checking if a variable is declared before being assigned
   var declared = new mutable.HashMap[Symbol, Boolean]()
 
-
   def RUN() = execute(program)
 
   def Begin = program.append(BeginSentence())
@@ -31,16 +34,21 @@ class Pascala extends App {
   }
 
   object If {
-    def apply(cond: Boolean) = program.append(IfSentence(cond))
+    def apply(cond: Function0[Boolean]) = program.append(IfSentence(cond))
   }
 
   object Then {
-    def apply(s: Sentence) = program.append(s)
+    def apply(s: Sentence) = program.append(ThenSentence(s))
     def apply(s: Unit) = 1 + 1
   }
 
   object Else {
-    def apply(s: Sentence) = program.append(s)
+    def apply(s: Sentence) = program.append(ElseSentence(s))
+    def apply(s: Unit) = 1 + 1
+  }
+
+  object ElseIf {
+    def apply(cond: Function0[Boolean]) = program.append(ElseIfSentence(cond))
     def apply(s: Unit) = 1 + 1
   }
 
@@ -132,6 +140,141 @@ class Pascala extends App {
         throw new IllegalStateException("Cannot use multiplication operator with strings or booleans.")
       }
     }
+
+    def >(rhs: Int): Function0[Boolean] = () => ints(lhs) > rhs
+    def >(rhs: Double): Function0[Boolean] = () => doubles(lhs) > rhs
+    def >(rhs: Symbol): Function0[Boolean] = {
+      if (ints.contains(rhs)) {
+        () => ints(lhs) > ints(rhs)
+      } else if (doubles.contains(rhs)) {
+        () => doubles(lhs) > doubles(rhs)
+      } else {
+        throw new IllegalStateException("Cannot use the > operator with strings or booleans.")
+      }
+    }
+    def >(rhs: Function0[Any]): Function0[Any] = {
+      if (ints.contains(lhs)) {
+        () => ints(lhs) > rhs().asInstanceOf[Int]
+      } else {
+        () => doubles(lhs) > rhs().asInstanceOf[Double]
+      }
+    }
+
+    def >=(rhs: Int): Function0[Boolean] = () => ints(lhs) >= rhs
+    def >=(rhs: Double): Function0[Boolean] = () => doubles(lhs) >= rhs
+    def >=(rhs: Symbol): Function0[Boolean] = {
+      if (ints.contains(rhs)) {
+        () => ints(lhs) >= ints(rhs)
+      } else if (doubles.contains(rhs)) {
+        () => doubles(lhs) >= doubles(rhs)
+      } else {
+        throw new IllegalStateException("Cannot use the > operator with strings or booleans.")
+      }
+    }
+    def >=(rhs: Function0[Any]): Function0[Any] = {
+      if (ints.contains(lhs)) {
+        () => ints(lhs) >= rhs().asInstanceOf[Int]
+      } else {
+        () => doubles(lhs) >= rhs().asInstanceOf[Double]
+      }
+    }
+
+    def ==(rhs: Int): Function0[Boolean] = () => ints(lhs) == rhs
+    def ==(rhs: Double): Function0[Boolean] = () => doubles(lhs) == rhs
+    def ==(rhs: String): Function0[Boolean] = () => strings(lhs).equals(rhs)
+    def ==(rhs: Boolean): Function0[Boolean] = () => bools(lhs) == rhs
+    def ==(rhs: Symbol): Function0[Boolean] = {
+      if (ints.contains(rhs)) {
+        () => ints(lhs) == ints(rhs)
+      } else if (doubles.contains(rhs)) {
+        () => doubles(lhs) == doubles(rhs)
+      } else if (strings.contains(rhs)) {
+        () => strings(lhs).equals(strings(rhs))
+      } else {
+        throw new IllegalStateException("Cannot use the == operator with strings or booleans.")
+      }
+    }
+    def ==(rhs: Function0[Any]): Function0[Any] = {
+      if (ints.contains(lhs)) {
+        () => ints(lhs) == rhs().asInstanceOf[Int]
+      } else if (doubles.contains(lhs)) {
+        () => doubles(lhs) == rhs().asInstanceOf[Double]
+      } else if (strings.contains(lhs)) {
+        () => strings(lhs).equals(rhs().asInstanceOf[String])
+      } else {
+        () => bools(lhs) == rhs().asInstanceOf[Boolean]
+      }
+    }
+
+    def <=(rhs: Int): Function0[Boolean] = () => ints(lhs) <= rhs
+    def <=(rhs: Double): Function0[Boolean] = () => doubles(lhs) <= rhs
+    def <=(rhs: Symbol): Function0[Boolean] = {
+      if (ints.contains(rhs)) {
+        () => ints(lhs) <= ints(rhs)
+      } else if (doubles.contains(rhs)) {
+        () => doubles(lhs) <= doubles(rhs)
+      } else {
+        throw new IllegalStateException("Cannot use the <= operator with strings or booleans.")
+      }
+    }
+    def <=(rhs: Function0[Any]): Function0[Any] = {
+      if (ints.contains(lhs)) {
+        () => ints(lhs) <= rhs().asInstanceOf[Int]
+      } else if (doubles.contains(lhs)) {
+        () => doubles(lhs) <= rhs().asInstanceOf[Double]
+      } else {
+        throw new IllegalStateException("Cannot use <= operator with strings or booleans.")
+      }
+    }
+
+    def <(rhs: Int): Function0[Boolean] = () => ints(lhs) < rhs
+    def <(rhs: Double): Function0[Boolean] = () => doubles(lhs) < rhs
+    def <(rhs: Symbol): Function0[Boolean] = {
+      if (ints.contains(rhs)) {
+        () => ints(lhs) < ints(rhs)
+      } else if (doubles.contains(rhs)) {
+        () => doubles(lhs) < doubles(rhs)
+      } else {
+        throw new IllegalStateException("Cannot use the < operator with strings or booleans.")
+      }
+    }
+    def <(rhs: Function0[Any]): Function0[Any] = {
+      if (ints.contains(lhs)) {
+        () => ints(lhs) < rhs().asInstanceOf[Int]
+      } else if (doubles.contains(lhs)) {
+        () => doubles(lhs) < rhs().asInstanceOf[Double]
+      } else {
+        throw new IllegalStateException("Cannot use < operator with strings or booleans.")
+      }
+    }
+
+
+    def <>(rhs: Int): Function0[Boolean] = () => ints(lhs) != rhs
+    def <>(rhs: Double): Function0[Boolean] = () => doubles(lhs) != rhs
+    def <>(rhs: String): Function0[Boolean] = () => strings(lhs).equals(rhs)
+    def <>(rhs: Boolean): Function0[Boolean] = () => bools(lhs) != rhs
+    def <>(rhs: Symbol): Function0[Boolean] = {
+      if (ints.contains(rhs)) {
+        () => ints(lhs) != ints(rhs)
+      } else if (doubles.contains(rhs)) {
+        () => doubles(lhs) != doubles(rhs)
+      } else if (strings.contains(rhs)) {
+        () => strings(lhs).equals(strings(rhs))
+      } else {
+        throw new IllegalStateException("Cannot use the != operator with strings or booleans.")
+      }
+    }
+    def <>(rhs: Function0[Any]): Function0[Any] = {
+      if (ints.contains(lhs)) {
+        () => ints(lhs) != rhs().asInstanceOf[Int]
+      } else if (doubles.contains(lhs)) {
+        () => doubles(lhs) != rhs().asInstanceOf[Double]
+      } else if (strings.contains(lhs)) {
+        () => strings(lhs).equals(rhs().asInstanceOf[String])
+      } else {
+        () => bools(lhs) != rhs().asInstanceOf[Boolean]
+      }
+    }
   }
 
   case class EvalFunction0(lhs: Function0[Any]) {
@@ -211,7 +354,7 @@ class Pascala extends App {
     def apply(streams: String) = program.append(ProgramSentence(streams))
   }
 
-  object Write {
+  object Writeln {
     def apply(s: String) = program.append(WriteSentence(s))
     def apply(i: Int) = program.append(WriteSentence(i.toString))
     def apply(d: Double) = program.append(WriteSentence(d.toString))
@@ -252,6 +395,37 @@ class Pascala extends App {
         execute(lines.slice(1, lines.length))
       }
       case EndSentence() => {
+      }
+      case IfSentence(cond: Function0[Boolean]) => {
+        if (cond()) {
+          execute(lines.slice(1, lines.length))
+        } else {
+          // either an Else/ElseIf follows
+          // execute sentence after ThenSentence
+          execute(lines.slice(2, lines.length))
+        }
+      }
+      case ThenSentence(thenSentence: Sentence) => {
+        // prepend sentence inside then into lines and run next
+
+        // If there is an Else following this ThenSentence, then we need to execute the line after the Else
+        var sentence = BeginSentence
+        val loop = new Breaks
+        lines.remove(0)
+        loop.breakable {
+          for (sentence <- lines) {
+            if (!sentence.isInstanceOf[ElseIfSentence] && !sentence.isInstanceOf[ElseSentence]) {
+              loop.break()
+            } else {
+              lines.remove(0)
+            }
+          }
+        }
+        lines.prepend(thenSentence)
+      }
+      case ElseSentence(elseSentence: Sentence) => {
+        lines.remove(0)
+        lines.prepend(elseSentence)
       }
     }
   }

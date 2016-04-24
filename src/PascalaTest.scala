@@ -1,19 +1,58 @@
 
 object PascalaTest extends Pascala {
-  Program ("HelloWorld(stdio)")
 
-  Var ('count)
-  Var ('count2)
+  def runIntTests(): Unit = {
+    Program ("HelloWorld(stdio)")
+    Var ('count)
+    Var ('count2)
+    Begin
+    'int := 20
+    'int2 := 40
 
-  Begin
-  'count := 20
-  'count2 := 40
+    Writeln("TEST INTEGER MATH")
+    Writeln("")
 
-  Write (2)
-  Write ('count + 5 div 'count)
-  Write ('count + 3 - 5 div 'count2 div 4)
+    Writeln("Should be 20")
+    Writeln('int)
+    Writeln("")
 
-  End
+    Writeln("Should be 22")
+    Writeln('int + 2)
+    Writeln("")
 
-  RUN
+    Writeln("Should be 60")
+    Writeln('int + 'int2)
+    Writeln("")
+
+    Writeln("Should be 10")
+    Writeln('int - 10)
+    Writeln("")
+
+    Writeln("Should be -20")
+    Writeln('int - 'int2)
+    Writeln("")
+
+    Writeln("Should be 100")
+    Writeln('int * 5)
+    Writeln("")
+
+    Writeln("Should be 4")
+    Writeln('int div 5)
+    Writeln("")
+
+    End
+
+    RUN
+  }
+
+  def runDoubleTests(): Unit = {
+    Program ("HelloWorld(stdio)")
+    Var ('count)
+    Var ('count2)
+    Begin
+    'double := 1.5
+    'double2 := 3.5
+  }
+
+  runIntTests()
 }
