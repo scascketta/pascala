@@ -9,9 +9,12 @@ object PascalaDemo extends Pascala {
   'count := 20
   'count2 := 40
 
-  If('count < 21)
-  Then(Writeln("count is < 10"))
-  Else(Writeln("count is >= 10"))
+  If('count < 19)
+  Then
+  Begin
+  Writeln("if is true")
+  End
+
 
   Writeln('count)
 

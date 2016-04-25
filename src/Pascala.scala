@@ -11,9 +11,7 @@ class Pascala extends App {
   case class WriteSentence(s: String) extends Sentence
   case class DeclareSentence(s: Symbol) extends Sentence
   case class IfSentence(cond: Function0[Boolean]) extends Sentence
-  case class ThenSentence(sen: Sentence) extends Sentence
-  case class ElseSentence(sen: Sentence) extends Sentence
-  case class ElseIfSentence(cond: Function0[Boolean]) extends Sentence
+  case class ThenSentence() extends Sentence
 
   var program = new mutable.ArrayBuffer[Sentence]
 
@@ -37,20 +35,7 @@ class Pascala extends App {
     def apply(cond: Function0[Boolean]) = program.append(IfSentence(cond))
   }
 
-  object Then {
-    def apply(s: Sentence) = program.append(ThenSentence(s))
-    def apply(s: Unit) = 1 + 1
-  }
-
-  object Else {
-    def apply(s: Sentence) = program.append(ElseSentence(s))
-    def apply(s: Unit) = 1 + 1
-  }
-
-  object ElseIf {
-    def apply(cond: Function0[Boolean]) = program.append(ElseIfSentence(cond))
-    def apply(s: Unit) = 1 + 1
-  }
+  def Then = program.append(ThenSentence())
 
   case class Assignment(sym: Symbol) {
     def :=(s: String): Unit = strings(sym) = s
@@ -395,37 +380,31 @@ class Pascala extends App {
         execute(lines.slice(1, lines.length))
       }
       case EndSentence() => {
+        if (lines.length > 1) {
+          execute(lines.slice(1, lines.length))
+        }
+      }
+      case ThenSentence() => {
+        execute(lines.slice(1, lines.length))
       }
       case IfSentence(cond: Function0[Boolean]) => {
+        val loop = new Breaks
+        var startIndex = 0
+        var sentence = BeginSentence
+        loop.breakable {
+          for (sentence <- lines) {
+            if (sentence.isInstanceOf[EndSentence]) {
+              loop.break()
+            }
+            startIndex += 1
+          }
+        }
+
         if (cond()) {
           execute(lines.slice(1, lines.length))
         } else {
-          // either an Else/ElseIf follows
-          // execute sentence after ThenSentence
-          execute(lines.slice(2, lines.length))
+          execute(lines.slice(startIndex + 1, lines.length))
         }
-      }
-      case ThenSentence(thenSentence: Sentence) => {
-        // prepend sentence inside then into lines and run next
-
-        // If there is an Else following this ThenSentence, then we need to execute the line after the Else
-        var sentence = BeginSentence
-        val loop = new Breaks
-        lines.remove(0)
-        loop.breakable {
-          for (sentence <- lines) {
-            if (!sentence.isInstanceOf[ElseIfSentence] && !sentence.isInstanceOf[ElseSentence]) {
-              loop.break()
-            } else {
-              lines.remove(0)
-            }
-          }
-        }
-        lines.prepend(thenSentence)
-      }
-      case ElseSentence(elseSentence: Sentence) => {
-        lines.remove(0)
-        lines.prepend(elseSentence)
       }
     }
   }
