@@ -12,6 +12,7 @@ class Pascala extends App {
   case class DeclareSentence(s: Symbol) extends Sentence
   case class IfSentence(cond: Function0[Boolean]) extends Sentence
   case class ThenSentence() extends Sentence
+  case class ElseSentence() extends Sentence
 
   var program = new mutable.ArrayBuffer[Sentence]
 
@@ -36,6 +37,7 @@ class Pascala extends App {
   }
 
   def Then = program.append(ThenSentence())
+  def Else = program.append(ElseSentence())
 
   case class Assignment(sym: Symbol) {
     def :=(s: String): Unit = strings(sym) = s
@@ -387,23 +389,38 @@ class Pascala extends App {
       case ThenSentence() => {
         execute(lines.slice(1, lines.length))
       }
-      case IfSentence(cond: Function0[Boolean]) => {
+      case ElseSentence() => {
+        // this only runs if the contents in the else block should not be run
+        // search for the end of the block inside the else and run everything after it
         val loop = new Breaks
-        var startIndex = 0
+        var endIndex = 0
         var sentence = BeginSentence
         loop.breakable {
           for (sentence <- lines) {
             if (sentence.isInstanceOf[EndSentence]) {
               loop.break()
             }
-            startIndex += 1
+            endIndex += 1
           }
         }
-
+        execute(lines.slice(endIndex + 1, lines.length))
+      }
+      case IfSentence(cond: Function0[Boolean]) => {
         if (cond()) {
           execute(lines.slice(1, lines.length))
         } else {
-          execute(lines.slice(startIndex + 1, lines.length))
+          val loop = new Breaks
+          var elseIndex = 0
+          var sentence = BeginSentence
+          loop.breakable {
+            for (sentence <- lines) {
+              if (sentence.isInstanceOf[ElseSentence]) {
+                loop.break()
+              }
+              elseIndex += 1
+            }
+          }
+          execute(lines.slice(elseIndex + 1, lines.length))
         }
       }
     }

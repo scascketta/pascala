@@ -9,11 +9,26 @@ object PascalaDemo extends Pascala {
   'count := 20
   'count2 := 40
 
-  If('count < 19)
-  Then
-  Begin
-  Writeln("if is true")
-  End
+  If('count < 19); Then
+    Begin
+      Writeln("if is true")
+      Writeln("if is true - the sequel")
+    End
+  Else
+    Begin
+      Writeln("if not true")
+      Writeln("if not true - the sequel")
+      If('count < 19); Then
+        Begin
+          Writeln("if is true")
+          Writeln("if is true - the sequel")
+        End
+      Else
+        Begin
+          Writeln("if not true")
+          Writeln("if not true - the sequel")
+        End
+    End
 
 
   Writeln('count)
