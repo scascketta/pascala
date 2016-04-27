@@ -1,37 +1,26 @@
-
 object PascalaDemo extends Pascala {
   Program ("HelloWorld(stdio)")
 
-  Var ('count)
-  Var ('count2)
+  Var('count)
 
   Begin
-  'count := 20
-  'count2 := 40
+  Writeln("Provide a value for count:")
+  Readln('count)
+  'words := "hello"
+  'doubleval := 12.86
 
-  If('count < 19); Then
+  Writeln('count)
+
+  If('count === "20") ; Then
     Begin
-      Writeln("if is true")
-      Writeln("if is true - the sequel")
+      Writeln('words + " world")
     End
   Else
     Begin
-      Writeln("if not true")
-      Writeln("if not true - the sequel")
-      If('count < 19); Then
-        Begin
-          Writeln("if is true")
-          Writeln("if is true - the sequel")
-        End
-      Else
-        Begin
-          Writeln("if not true")
-          Writeln("if not true - the sequel")
-        End
+      Writeln("was false")
     End
 
 
-  Writeln('count)
 
   End
 
