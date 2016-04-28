@@ -10,6 +10,8 @@ class Pascala extends App {
   case class WriteSentence(value: Any) extends Sentence
   case class DeclareSentence(s: Symbol) extends Sentence
   case class ReadSentence(s: Symbol) extends Sentence
+  case class WhileSentence(cond: ExprSentence) extends Sentence
+  case class DoSentence() extends Sentence
   case class IfSentence(cond: ExprSentence) extends Sentence
   case class ThenSentence() extends Sentence
   case class ElseSentence() extends Sentence
@@ -36,6 +38,11 @@ class Pascala extends App {
     def apply(cond: ExprSentence) = program.append(IfSentence(cond))
   }
 
+  object While {
+    def apply(cond: ExprSentence) = program.append(WhileSentence(cond))
+  }
+
+  def Do = program.append(DoSentence())
   def Then = program.append(ThenSentence())
   def Else = program.append(ElseSentence())
 
@@ -43,7 +50,20 @@ class Pascala extends App {
     def :=(value:Any): Unit = program.append(AssignmentSentence(sym,value))
   }
   def assignment(sym: Symbol, value: Any): Unit ={
-    if(value.isInstanceOf[Int]){
+    if(value.isInstanceOf[ExprSentence]) {
+      val tmp = evalExpr(value.asInstanceOf[ExprSentence])()
+      if (tmp.isInstanceOf[Int]) {
+        ints(sym) = tmp.asInstanceOf[Int]
+      } else if (tmp.isInstanceOf[Double]) {
+        doubles(sym) = tmp.asInstanceOf[Double]
+      } else if (tmp.isInstanceOf[String]) {
+        strings(sym) = tmp.asInstanceOf[String]
+      } else if (tmp.isInstanceOf[Boolean]) {
+        bools(sym) = tmp.asInstanceOf[Boolean]
+      } else {
+        throw new IllegalStateException("Must assign int, boolean, double, or String value")
+      }
+    } else if(value.isInstanceOf[Int]){
       ints(sym) = value.asInstanceOf[Int]
     } else if(value.isInstanceOf[Double]){
       doubles(sym) = value.asInstanceOf[Double]
@@ -55,7 +75,6 @@ class Pascala extends App {
       throw new IllegalStateException("Must assign int, boolean, double, or String value")
     }
   }
-
 
   case class EvalSymbol(lhs: Symbol) {
     def +(rhs: Int): Function0[Int] = () => ints(lhs) + rhs
@@ -725,6 +744,9 @@ class Pascala extends App {
           execute(lines.slice(1, lines.length))
         }
       }
+      case DoSentence() => {
+        execute(lines.slice(1, lines.length))
+      }
       case ThenSentence() => {
         execute(lines.slice(1, lines.length))
       }
@@ -774,6 +796,31 @@ class Pascala extends App {
           }
           execute(lines.slice(elseIndex + 1, lines.length))
         }
+      }
+      case WhileSentence(cond: ExprSentence) => {
+        // search for the end of the loop
+        val loop = new Breaks
+        var endIndex = 0
+        var sentence = BeginSentence
+        var block = new mutable.ArrayBuffer[Sentence]
+        loop.breakable {
+          for (sentence <- lines) {
+            if (sentence.isInstanceOf[EndSentence]) {
+              block.append(sentence)
+              loop.break()
+            } else if (sentence.isInstanceOf[WhileSentence]){
+              // do nothing
+            } else {
+              block.append(sentence)
+            }
+            endIndex += 1
+          }
+        }
+        while (evalExpr(cond)().asInstanceOf[Boolean]) {
+          execute(block)
+          // println("looped...")
+        }
+        execute(lines.slice(endIndex + 1, lines.length))
       }
     }
   }

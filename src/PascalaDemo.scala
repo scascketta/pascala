@@ -5,13 +5,13 @@ object PascalaDemo extends Pascala {
 
   Begin
   Writeln("Provide a value for count:")
-  Readln('count)
+  'count := 1
   'words := "hello"
   'doubleval := 12.86
 
   Writeln('count)
 
-  If('count === "20") ; Then
+  If('count === 20) ; Then
     Begin
       Writeln('words + " world")
     End
@@ -20,7 +20,11 @@ object PascalaDemo extends Pascala {
       Writeln("was false")
     End
 
-
+  While('count < 10) ; Do
+    Begin
+      Writeln('count)
+      'count := 'count + 1
+    End
 
   End
 

@@ -287,8 +287,55 @@ object PascalaTest extends Pascala {
     RUN
   }
 
+  def runLoopTests(): Unit = {
+    Program ("HelloWorld(stdio)")
+    Var ('x)
+
+    Begin
+
+    Writeln("----------------")
+    Writeln("TEST WHILE LOOPS")
+    Writeln("----------------")
+    Writeln("")
+
+    'x := 1
+    Writeln("x is 1")
+    Writeln("should print nothing")
+    While('x < 1) ; Do
+    Begin
+    Writeln('x)
+    'x := 'x + 1
+    End
+    Writeln("")
+
+    'x := 1
+    Writeln("x is 1")
+    Writeln("should print 1 to 10 by 1")
+    While('x <= 10) ; Do
+    Begin
+    Writeln('x)
+    'x := 'x + 1
+    End
+    Writeln("")
+
+    'x := 2
+    Writeln("x is 2")
+    Writeln("should print 2 to 10 by 2")
+    While('x <= 10) ; Do
+    Begin
+    Writeln('x)
+    'x := 'x + 2
+    End
+    Writeln("")
+
+    End
+
+    RUN
+  }
+
   runIntTests()
   runDoubleTests()
   runStringTests()
   runConditionalTests()
+  runLoopTests()
 }
