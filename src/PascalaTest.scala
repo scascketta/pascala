@@ -1,4 +1,3 @@
-
 object PascalaTest extends Pascala {
 
   def runIntTests(): Unit = {
@@ -9,7 +8,9 @@ object PascalaTest extends Pascala {
     'int := 20
     'int2 := 40
 
-    Writeln("TEST INTEGER MATH")
+    Writeln("------------------")
+    Writeln("TEST INTEGER MATHS")
+    Writeln("------------------")
     Writeln("")
 
     Writeln("Should be 20")
@@ -36,8 +37,20 @@ object PascalaTest extends Pascala {
     Writeln('int * 5)
     Writeln("")
 
+    Writeln("Should be 800")
+    Writeln('int * 'int2)
+    Writeln("")
+
     Writeln("Should be 4")
     Writeln('int div 5)
+    Writeln("")
+
+    Writeln("Should be 0")
+    Writeln('int div 'int2)
+    Writeln("")
+
+    Writeln("Should be 2")
+    Writeln('int2 div 'int)
     Writeln("")
 
     End
@@ -52,7 +65,230 @@ object PascalaTest extends Pascala {
     Begin
     'double := 1.5
     'double2 := 3.5
+
+    Writeln("-----------------")
+    Writeln("TEST DOUBLE MATHS")
+    Writeln("-----------------")
+    Writeln("")
+
+    Writeln("Should be 5.0")
+    Writeln('double + 'double2)
+    Writeln("")
+
+    Writeln("Should be -2.0")
+    Writeln('double - 'double2)
+    Writeln("")
+
+    Writeln("Should be 5.25")
+    Writeln('double * 'double2)
+    Writeln("")
+
+    Writeln("Should be 0.4285...")
+    Writeln('double div 'double2)
+    Writeln("")
+
+    End
+
+    RUN
+  }
+
+  def runStringTests(): Unit = {
+    Program ("HelloWorld(stdio)")
+    Var ('hello)
+    Var ('world)
+    Begin
+    'hello := "Hello, "
+    'world := "World!"
+
+    Writeln("-----------------")
+    Writeln("TEST STRING MATHS")
+    Writeln("-----------------")
+    Writeln("")
+
+    Writeln("Should be Hello,")
+    Writeln('hello)
+    Writeln("")
+
+    Writeln("Should be Hello, World!")
+    Writeln('hello + 'world)
+    Writeln("")
+
+    End
+
+    RUN
+  }
+
+  def runConditionalTests(): Unit = {
+    Program ("HelloWorld(stdio)")
+    Var ('x)
+    Var ('y)
+
+    Begin
+    'x := 10
+    'y := 20
+
+    Writeln("----------------------")
+    Writeln("TEST CONDITIONAL LOGIC")
+    Writeln("----------------------")
+    Writeln("")
+
+    Writeln("x is 10")
+    Writeln("x < 10")
+    If('x < 10) ; Then
+    Begin
+    Writeln("was true")
+    End
+    Else
+    Begin
+    Writeln("was false")
+    End
+    Writeln("")
+
+    Writeln("x is 10")
+    Writeln("x > 10")
+    If('x > 10) ; Then
+    Begin
+    Writeln("was true")
+    End
+    Else
+    Begin
+    Writeln("was false")
+    End
+    Writeln("")
+
+    Writeln("x is 10")
+    Writeln("x >= 10")
+    If('x >= 10) ; Then
+    Begin
+    Writeln("was true")
+    End
+    Else
+    Begin
+    Writeln("was false")
+    End
+    Writeln("")
+
+    Writeln("x is 10")
+    Writeln("x <= 10")
+    If('x <= 10) ; Then
+    Begin
+    Writeln("was true")
+    End
+    Else
+    Begin
+    Writeln("was false")
+    End
+    Writeln("")
+
+    Writeln("x is 10")
+    Writeln("x === 10")
+    If('x === 10) ; Then
+    Begin
+    Writeln("was true")
+    End
+    Else
+    Begin
+    Writeln("was false")
+    End
+    Writeln("")
+
+    Writeln("x is 10")
+    Writeln("x <> 10")
+    If('x <> 10) ; Then
+    Begin
+    Writeln("was true")
+    End
+    Else
+    Begin
+    Writeln("was false")
+    End
+    Writeln("")
+
+    Writeln("x is 10")
+    Writeln("y is 20")
+    Writeln("x < y")
+    If('x < 'y) ; Then
+    Begin
+    Writeln("was true")
+    End
+    Else
+    Begin
+    Writeln("was false")
+    End
+    Writeln("")
+
+    Writeln("x is 10")
+    Writeln("y is 20")
+    Writeln("x > y")
+    If('x > 'y) ; Then
+    Begin
+    Writeln("was true")
+    End
+    Else
+    Begin
+    Writeln("was false")
+    End
+    Writeln("")
+
+    Writeln("x is 10")
+    Writeln("y is 20")
+    Writeln("x <= y")
+    If('x <= 'y) ; Then
+    Begin
+    Writeln("was true")
+    End
+    Else
+    Begin
+    Writeln("was false")
+    End
+    Writeln("")
+
+    Writeln("x is 10")
+    Writeln("y is 20")
+    Writeln("x >= y")
+    If('x >= 'y) ; Then
+    Begin
+    Writeln("was true")
+    End
+    Else
+    Begin
+    Writeln("was false")
+    End
+    Writeln("")
+
+    Writeln("x is 10")
+    Writeln("y is 20")
+    Writeln("x === y")
+    If('x === 'y) ; Then
+    Begin
+    Writeln("was true")
+    End
+    Else
+    Begin
+    Writeln("was false")
+    End
+    Writeln("")
+
+    Writeln("x is 10")
+    Writeln("y is 20")
+    Writeln("x <> y")
+    If('x <> 'y) ; Then
+    Begin
+    Writeln("was true")
+    End
+    Else
+    Begin
+    Writeln("was false")
+    End
+    Writeln("")
+
+    End
+
+    RUN
   }
 
   runIntTests()
+  runDoubleTests()
+  runStringTests()
+  runConditionalTests()
 }
