@@ -48,6 +48,35 @@ class Pascala extends App {
     def apply(cond: ExprSentence) = program.append(WhileSentence(cond))
   }
 
+  object Program {
+    def apply(streams: String) = program.append(ProgramSentence(streams))
+  }
+
+  object Readln {
+    def apply(sym: Symbol) = program.append(ReadSentence(sym))
+  }
+
+  object Writeln {
+    def apply(s: String) = program.append(WriteSentence(s))
+    def apply(i: Int) = program.append(WriteSentence(i.toString))
+    def apply(d: Double) = program.append(WriteSentence(d.toString))
+    def apply(b: Boolean) = program.append(WriteSentence(b.toString))
+    def apply(fn: Function0[Any]) = program.append(WriteSentence(fn().toString))
+    def apply(sym: Symbol) = program.append(WriteSentence(sym))
+    def apply(expr: ExprSentence) = program.append(WriteSentence(expr))
+  }
+
+  object Rand {
+    def apply(key: Symbol, upper: Int) = program.append(RandSentence(key, upper))
+    def apply(key: Symbol, sym: Symbol) = program.append(RandSentence(key, sym))
+  }
+
+  object Sqrt {
+    def apply(key: Symbol, num: Double) = program.append(SqrtSentence(key, num))
+    def apply(key: Symbol, sym: Symbol) = program.append(SqrtSentence(key, sym))
+  }
+
+  def End = program.append(EndSentence())
   def Do = program.append(DoSentence())
   def Then = program.append(ThenSentence())
   def Else = program.append(ElseSentence())
@@ -55,30 +84,32 @@ class Pascala extends App {
   case class Symbol2Assignment(sym: Symbol) {
     def :=(value:Any): Unit = program.append(AssignmentSentence(sym,value))
   }
+
   def assignment(sym: Symbol, value: Any): Unit ={
-    if(value.isInstanceOf[ExprSentence]) {
-      val tmp = evalExpr(value.asInstanceOf[ExprSentence])()
-      if (tmp.isInstanceOf[Int]) {
-        ints(sym) = tmp.asInstanceOf[Int]
-      } else if (tmp.isInstanceOf[Double]) {
-        doubles(sym) = tmp.asInstanceOf[Double]
-      } else if (tmp.isInstanceOf[String]) {
-        strings(sym) = tmp.asInstanceOf[String]
-      } else if (tmp.isInstanceOf[Boolean]) {
-        bools(sym) = tmp.asInstanceOf[Boolean]
-      } else {
+    value match {
+      case expr: ExprSentence =>
+        val tmp = evalExpr(expr)()
+        if (tmp.isInstanceOf[Int]) {
+          ints(sym) = tmp.asInstanceOf[Int]
+        } else if (tmp.isInstanceOf[Double]) {
+          doubles(sym) = tmp.asInstanceOf[Double]
+        } else if (tmp.isInstanceOf[String]) {
+          strings(sym) = tmp.asInstanceOf[String]
+        } else if (tmp.isInstanceOf[Boolean]) {
+          bools(sym) = tmp.asInstanceOf[Boolean]
+        } else {
+          throw new IllegalStateException("Must assign int, boolean, double, or String value")
+        }
+      case i: Int =>
+        ints(sym) = i
+      case d: Double =>
+        doubles(sym) = d
+      case s: String =>
+        strings(sym) = s
+      case b: Boolean =>
+        bools(sym) = b
+      case _ =>
         throw new IllegalStateException("Must assign int, boolean, double, or String value")
-      }
-    } else if(value.isInstanceOf[Int]){
-      ints(sym) = value.asInstanceOf[Int]
-    } else if(value.isInstanceOf[Double]){
-      doubles(sym) = value.asInstanceOf[Double]
-    } else if(value.isInstanceOf[String]){
-      strings(sym) = value.asInstanceOf[String]
-    } else if(value.isInstanceOf[Boolean]){
-      bools(sym) = value.asInstanceOf[Boolean]
-    } else {
-      throw new IllegalStateException("Must assign int, boolean, double, or String value")
     }
   }
 
@@ -126,23 +157,24 @@ class Pascala extends App {
     def -(rhs: Int): Function0[Int] = () => ints(lhs) - rhs
     def -(rhs: Double): Function0[Double] = () => doubles(lhs) - rhs
     def -(rhs: Function0[Any]): Function0[Any] = {
-      if (rhs().isInstanceOf[Symbol]) {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) - ints(rhs().asInstanceOf[Symbol])
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) - doubles(rhs().asInstanceOf[Symbol])
-        } else {
-          throw new IllegalStateException("LHS must be a int or double")
-        }
-      } else {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) - rhs().asInstanceOf[Int]
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) - rhs().asInstanceOf[Double]
-        } else {
-          println(lhs)
-          throw new IllegalStateException("LHS must be a int or double")
-        }
+      rhs() match {
+        case key: Symbol =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) - ints(key)
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) - doubles(key)
+          } else {
+            throw new IllegalStateException("LHS must be a int or double")
+          }
+        case _ =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) - rhs().asInstanceOf[Int]
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) - rhs().asInstanceOf[Double]
+          } else {
+            println(lhs)
+            throw new IllegalStateException("LHS must be a int or double")
+          }
       }
     }
     def -(rhs: Symbol): Function0[Any] = {
@@ -158,23 +190,24 @@ class Pascala extends App {
     def *(rhs: Int): Function0[Int] = () => ints(lhs) * rhs
     def *(rhs: Double): Function0[Double] = () => doubles(lhs) * rhs
     def *(rhs: Function0[Any]): Function0[Any] = {
-      if (rhs().isInstanceOf[Symbol]) {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) * ints(rhs().asInstanceOf[Symbol])
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) * doubles(rhs().asInstanceOf[Symbol])
-        } else {
-          throw new IllegalStateException("Cannot use mult operator with strings or booleans")
-        }
-      } else {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) * rhs().asInstanceOf[Int]
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) * rhs().asInstanceOf[Double]
-        } else {
-          println(lhs)
-          throw new IllegalStateException("Cannot use mult operator with strings or booleans")
-        }
+      rhs() match {
+        case symbol: Symbol =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) * ints(symbol)
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) * doubles(symbol)
+          } else {
+            throw new IllegalStateException("Cannot use mult operator with strings or booleans")
+          }
+        case _ =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) * rhs().asInstanceOf[Int]
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) * rhs().asInstanceOf[Double]
+          } else {
+            println(lhs)
+            throw new IllegalStateException("Cannot use mult operator with strings or booleans")
+          }
       }
     }
     def *(rhs: Symbol): Function0[Any] = {
@@ -190,23 +223,24 @@ class Pascala extends App {
     def div(rhs: Int): Function0[Int] = () => ints(lhs) / rhs
     def div(rhs: Double): Function0[Double] = () => doubles(lhs) / rhs
     def div(rhs: Function0[Any]): Function0[Any] = {
-      if (rhs().isInstanceOf[Symbol]) {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) / ints(rhs().asInstanceOf[Symbol])
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) / doubles(rhs().asInstanceOf[Symbol])
-        } else {
-          throw new IllegalStateException("Cannot use div operator with strings or booleans")
-        }
-      } else {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) / rhs().asInstanceOf[Int]
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) / rhs().asInstanceOf[Double]
-        } else {
-          println(lhs)
-          throw new IllegalStateException("Cannot use div operator with strings or booleans")
-        }
+      rhs() match {
+        case key: Symbol =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) / ints(key)
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) / doubles(key)
+          } else {
+            throw new IllegalStateException("Cannot use div operator with strings or booleans")
+          }
+        case _ =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) / rhs().asInstanceOf[Int]
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) / rhs().asInstanceOf[Double]
+          } else {
+            println(lhs)
+            throw new IllegalStateException("Cannot use div operator with strings or booleans")
+          }
       }
     }
     def div(rhs: Symbol): Function0[Any] = {
@@ -231,24 +265,25 @@ class Pascala extends App {
       }
     }
     def >(rhs: Function0[Any]): Function0[Any] = {
-      if (rhs().isInstanceOf[Symbol]) {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) > ints(rhs().asInstanceOf[Symbol])
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) > doubles(rhs().asInstanceOf[Symbol])
-        } else {
-          println(lhs)
-          throw new IllegalStateException("Cannot use > operator with strings or booleans.")
-        }
-      } else {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) > rhs().asInstanceOf[Int]
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) > rhs().asInstanceOf[Double]
-        } else {
-          println(lhs)
-          throw new IllegalStateException("Cannot use > operator with strings or booleans.")
-        }
+      rhs() match {
+        case key: Symbol =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) > ints(key)
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) > doubles(key)
+          } else {
+            println(lhs)
+            throw new IllegalStateException("Cannot use > operator with strings or booleans.")
+          }
+        case _ =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) > rhs().asInstanceOf[Int]
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) > rhs().asInstanceOf[Double]
+          } else {
+            println(lhs)
+            throw new IllegalStateException("Cannot use > operator with strings or booleans.")
+          }
       }
     }
 
@@ -264,24 +299,25 @@ class Pascala extends App {
       }
     }
     def >=(rhs: Function0[Any]): Function0[Any] = {
-      if (rhs().isInstanceOf[Symbol]) {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) >= ints(rhs().asInstanceOf[Symbol])
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) >= doubles(rhs().asInstanceOf[Symbol])
-        } else {
-          println(lhs)
-          throw new IllegalStateException("Cannot use >= operator with strings or booleans.")
-        }
-      } else {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) >= rhs().asInstanceOf[Int]
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) >= rhs().asInstanceOf[Double]
-        } else {
-          println(lhs)
-          throw new IllegalStateException("Cannot use >= operator with strings or booleans.")
-        }
+      rhs() match {
+        case key: Symbol =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) >= ints(key)
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) >= doubles(key)
+          } else {
+            println(lhs)
+            throw new IllegalStateException("Cannot use >= operator with strings or booleans.")
+          }
+        case _ =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) >= rhs().asInstanceOf[Int]
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) >= rhs().asInstanceOf[Double]
+          } else {
+            println(lhs)
+            throw new IllegalStateException("Cannot use >= operator with strings or booleans.")
+          }
       }
     }
 
@@ -336,24 +372,25 @@ class Pascala extends App {
       }
     }
     def <=(rhs: Function0[Any]): Function0[Any] = {
-      if (rhs().isInstanceOf[Symbol]) {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) <= ints(rhs().asInstanceOf[Symbol])
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) <= doubles(rhs().asInstanceOf[Symbol])
-        } else {
-          println(lhs)
-          throw new IllegalStateException("Cannot use <= operator with strings or booleans.")
-        }
-      } else {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) <= rhs().asInstanceOf[Int]
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) <= rhs().asInstanceOf[Double]
-        } else {
-          println(lhs)
-          throw new IllegalStateException("Cannot use <= operator with strings or booleans.")
-        }
+      rhs() match {
+        case key: Symbol =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) <= ints(key)
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) <= doubles(key)
+          } else {
+            println(lhs)
+            throw new IllegalStateException("Cannot use <= operator with strings or booleans.")
+          }
+        case _ =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) <= rhs().asInstanceOf[Int]
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) <= rhs().asInstanceOf[Double]
+          } else {
+            println(lhs)
+            throw new IllegalStateException("Cannot use <= operator with strings or booleans.")
+          }
       }
     }
 
@@ -369,24 +406,25 @@ class Pascala extends App {
       }
     }
     def <(rhs: Function0[Any]): Function0[Any] = {
-      if (rhs().isInstanceOf[Symbol]) {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) < ints(rhs().asInstanceOf[Symbol])
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) < doubles(rhs().asInstanceOf[Symbol])
-        } else {
-          println(lhs)
-          throw new IllegalStateException("Cannot use < operator with strings or booleans.")
-        }
-      } else {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) < rhs().asInstanceOf[Int]
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) < rhs().asInstanceOf[Double]
-        } else {
-          println(lhs)
-          throw new IllegalStateException("Cannot use < operator with strings or booleans.")
-        }
+      rhs() match {
+        case key: Symbol =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) < ints(key)
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) < doubles(key)
+          } else {
+            println(lhs)
+            throw new IllegalStateException("Cannot use < operator with strings or booleans.")
+          }
+        case _ =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) < rhs().asInstanceOf[Int]
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) < rhs().asInstanceOf[Double]
+          } else {
+            println(lhs)
+            throw new IllegalStateException("Cannot use < operator with strings or booleans.")
+          }
       }
     }
 
@@ -407,26 +445,27 @@ class Pascala extends App {
       }
     }
     def <>(rhs: Function0[Any]): Function0[Any] = {
-      if (rhs().isInstanceOf[Symbol]) {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) != ints(rhs().asInstanceOf[Symbol])
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) != doubles(rhs().asInstanceOf[Symbol])
-        } else if (strings.contains(lhs)) {
-          () => strings(lhs) != strings(rhs().asInstanceOf[Symbol])
-        } else {
-          () => bools(lhs) != bools(rhs().asInstanceOf[Symbol])
-        }
-      } else {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) != rhs().asInstanceOf[Int]
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) != rhs().asInstanceOf[Double]
-        } else if (strings.contains(lhs)) {
-          () => strings(lhs) != rhs().asInstanceOf[String]
-        } else {
-          () => bools(lhs) != rhs().asInstanceOf[Boolean]
-        }
+      rhs() match {
+        case key: Symbol =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) != ints(key)
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) != doubles(key)
+          } else if (strings.contains(lhs)) {
+            () => strings(lhs) != strings(key)
+          } else {
+            () => bools(lhs) != bools(key)
+          }
+        case _ =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) != rhs().asInstanceOf[Int]
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) != rhs().asInstanceOf[Double]
+          } else if (strings.contains(lhs)) {
+            () => strings(lhs) != rhs().asInstanceOf[String]
+          } else {
+            () => bools(lhs) != rhs().asInstanceOf[Boolean]
+          }
       }
     }
   }
@@ -434,26 +473,29 @@ class Pascala extends App {
   case class EvalAny(lhs: Any) {
     def +(rhs: Int): Function0[Int] = () => lhs.asInstanceOf[Int] + rhs
     def +(rhs: Function0[Any]): Function0[Any] = {
-      if (rhs().isInstanceOf[Symbol]) {
-        if (lhs.isInstanceOf[Int]) {
-          () => lhs.asInstanceOf[Int] + ints(rhs().asInstanceOf[Symbol])
-        } else if (lhs.isInstanceOf[Double]) {
-          () => lhs.asInstanceOf[Double] + doubles(rhs().asInstanceOf[Symbol])
-        } else if (lhs.isInstanceOf[String]) {
-          () =>lhs.asInstanceOf[String] + strings(rhs().asInstanceOf[Symbol])
-        } else {
-          throw new IllegalStateException("LHS must be a int, string, or double")
-        }
-      } else {
-        if (lhs.isInstanceOf[Int]) {
-          () => lhs.asInstanceOf[Int] + rhs().asInstanceOf[Int]
-        } else if (lhs.isInstanceOf[Double]) {
-          () => lhs.asInstanceOf[Double] + rhs().asInstanceOf[Double]
-        } else if (lhs.isInstanceOf[String]) {
-          () => lhs.asInstanceOf[String] + rhs().asInstanceOf[String]
-        } else {
-          throw new IllegalStateException("LHS must be a int, string, or double")
-        }
+      rhs() match {
+        case symbol: Symbol =>
+          lhs match {
+            case i: Int =>
+              () => i + ints(symbol)
+            case d: Double =>
+              () => d + doubles(symbol)
+            case s: String =>
+              () => s + strings(symbol)
+            case _ =>
+              throw new IllegalStateException("LHS must be a int, string, or double")
+          }
+        case _ =>
+          lhs match {
+            case i: Int =>
+              () => i + rhs().asInstanceOf[Int]
+            case d: Double =>
+              () => d + rhs().asInstanceOf[Double]
+            case s: String =>
+              () => s + rhs().asInstanceOf[String]
+            case _ =>
+              throw new IllegalStateException("LHS must be a int, string, or double")
+          }
       }
     }
     def +(rhs: Double): Function0[Double] = () => lhs.asInstanceOf[Double] + rhs
@@ -487,37 +529,39 @@ class Pascala extends App {
       }
     }
     def +(rhs: Function0[Any]): Function0[Any] = {
-      if (rhs().isInstanceOf[Symbol]) {
-        if (lhs().isInstanceOf[Int]) {
-          () => lhs().asInstanceOf[Int] + ints(rhs().asInstanceOf[Symbol])
-        } else if (lhs().isInstanceOf[Double]) {
-          () => lhs().asInstanceOf[Double] + doubles(rhs().asInstanceOf[Symbol])
-        } else if (lhs().isInstanceOf[String]) {
-          () => lhs().asInstanceOf[String] + strings(rhs().asInstanceOf[Symbol])
-        } else {
-          throw new IllegalStateException("LHS must be a int, string, or double")
-        }
-      } else {
-        lhs() match {
-          case i: Int =>
-            () => i + rhs().asInstanceOf[Int]
-          case d: Double =>
-            () => d + rhs().asInstanceOf[Double]
-          case s: String =>
-            () => s + rhs().asInstanceOf[String]
-          case sym: Symbol =>
-            if (ints.contains(sym)) {
-              () => lhs().asInstanceOf[Int] + ints(sym)
-            } else if (doubles.contains(sym)) {
-              () => lhs().asInstanceOf[Double] + doubles(sym)
-            } else if (strings.contains(sym)) {
-              () => lhs().asInstanceOf[String] + strings(sym)
-            } else {
-              throw new IllegalStateException("Cannot use plus operator with booleans.")
-            }
-          case _ =>
-            throw new IllegalStateException("Cannot use the addition operator with booleans.")
-        }
+      rhs() match {
+        case key: Symbol =>
+          lhs() match {
+            case i: Int =>
+              () => i + ints(key)
+            case d: Double =>
+              () => d + doubles(key)
+            case s: String =>
+              () => s + strings(key)
+            case _ =>
+              throw new IllegalStateException("LHS must be a int, string, or double")
+          }
+        case _ =>
+          lhs() match {
+            case i: Int =>
+              () => i + rhs().asInstanceOf[Int]
+            case d: Double =>
+              () => d + rhs().asInstanceOf[Double]
+            case s: String =>
+              () => s + rhs().asInstanceOf[String]
+            case sym: Symbol =>
+              if (ints.contains(sym)) {
+                () => lhs().asInstanceOf[Int] + ints(sym)
+              } else if (doubles.contains(sym)) {
+                () => lhs().asInstanceOf[Double] + doubles(sym)
+              } else if (strings.contains(sym)) {
+                () => lhs().asInstanceOf[String] + strings(sym)
+              } else {
+                throw new IllegalStateException("Cannot use plus operator with booleans.")
+              }
+            case _ =>
+              throw new IllegalStateException("Cannot use the addition operator with booleans.")
+          }
       }
     }
 
@@ -588,32 +632,38 @@ class Pascala extends App {
     }
   }
 
-  object Program {
-    def apply(streams: String) = program.append(ProgramSentence(streams))
+  case class Symbol2Expr(lhs: Symbol) {
+    def +(rhs: Any): ExprSentence = ExprSentence("+", lhs, rhs)
+    def -(rhs: Any): ExprSentence = ExprSentence("-", lhs, rhs)
+    def *(rhs: Any): ExprSentence = ExprSentence("*", lhs, rhs)
+    def div(rhs: Any): ExprSentence = ExprSentence("div", lhs, rhs)
+    def <(rhs: Any): ExprSentence = ExprSentence("<", lhs, rhs)
+    def >(rhs: Any): ExprSentence = ExprSentence(">", lhs, rhs)
+    def >=(rhs: Any): ExprSentence = ExprSentence(">=", lhs, rhs)
+    def <=(rhs: Any): ExprSentence = ExprSentence("<=", lhs, rhs)
+    def ===(rhs: Any): ExprSentence = ExprSentence("==", lhs, rhs)
+    def <>(rhs: Any): ExprSentence = ExprSentence("<>", lhs, rhs)
   }
-
-  object Readln {
-    def apply(sym: Symbol) = program.append(ReadSentence(sym))
+  case class Expr2Expr(lhs: ExprSentence) {
+    def +(rhs: Any): ExprSentence = ExprSentence("+", lhs, rhs)
+    def -(rhs: Any): ExprSentence = ExprSentence("-", lhs, rhs)
+    def *(rhs: Any): ExprSentence = ExprSentence("*", lhs, rhs)
+    def div(rhs: Any): ExprSentence = ExprSentence("div", lhs, rhs)
   }
-
-  object Writeln {
-    def apply(s: String) = program.append(WriteSentence(s))
-    def apply(i: Int) = program.append(WriteSentence(i.toString))
-    def apply(d: Double) = program.append(WriteSentence(d.toString))
-    def apply(b: Boolean) = program.append(WriteSentence(b.toString))
-    def apply(fn: Function0[Any]) = program.append(WriteSentence(fn().toString))
-    def apply(sym: Symbol) = program.append(WriteSentence(sym))
-    def apply(expr: ExprSentence) = program.append(WriteSentence(expr))
+  case class Int2Expr(lhs: Int) {
+    def +(rhs: Any): ExprSentence = ExprSentence("+", lhs, rhs)
+    def -(rhs: Any): ExprSentence = ExprSentence("-", lhs, rhs)
+    def *(rhs: Any): ExprSentence = ExprSentence("*", lhs, rhs)
+    def div(rhs: Any): ExprSentence = ExprSentence("div", lhs, rhs)
   }
-
-  object Rand {
-    def apply(key: Symbol, upper: Int) = program.append(RandSentence(key, upper))
-    def apply(key: Symbol, sym: Symbol) = program.append(RandSentence(key, sym))
+  case class Double2Expr(lhs: Double) {
+    def +(rhs: Any): ExprSentence = ExprSentence("+", lhs, rhs)
+    def -(rhs: Any): ExprSentence = ExprSentence("-", lhs, rhs)
+    def *(rhs: Any): ExprSentence = ExprSentence("*", lhs, rhs)
+    def div(rhs: Any): ExprSentence = ExprSentence("div", lhs, rhs)
   }
-
-  object Sqrt {
-    def apply(key: Symbol, num: Double) = program.append(SqrtSentence(key, num))
-    def apply(key: Symbol, sym: Symbol) = program.append(SqrtSentence(key, sym))
+  case class String2Expr(lhs: String) {
+    def +(rhs: Any): ExprSentence = ExprSentence("+", lhs, rhs)
   }
 
   def getSymVal(sym: Symbol) = {
@@ -627,46 +677,6 @@ class Pascala extends App {
       bools(sym)
     }
   }
-
-  case class Symbol2Expr(lhs: Symbol) {
-    def +(rhs: Any): ExprSentence = ExprSentence("+", lhs, rhs)
-    def -(rhs: Any): ExprSentence = ExprSentence("-", lhs, rhs)
-    def *(rhs: Any): ExprSentence = ExprSentence("*", lhs, rhs)
-    def div(rhs: Any): ExprSentence = ExprSentence("div", lhs, rhs)
-    def <(rhs: Any): ExprSentence = ExprSentence("<", lhs, rhs)
-    def >(rhs: Any): ExprSentence = ExprSentence(">", lhs, rhs)
-    def >=(rhs: Any): ExprSentence = ExprSentence(">=", lhs, rhs)
-    def <=(rhs: Any): ExprSentence = ExprSentence("<=", lhs, rhs)
-    def ===(rhs: Any): ExprSentence = ExprSentence("==", lhs, rhs)
-    def <>(rhs: Any): ExprSentence = ExprSentence("<>", lhs, rhs)
-  }
-
-  case class Expr2Expr(lhs: ExprSentence) {
-    def +(rhs: Any): ExprSentence = ExprSentence("+", lhs, rhs)
-    def -(rhs: Any): ExprSentence = ExprSentence("-", lhs, rhs)
-    def *(rhs: Any): ExprSentence = ExprSentence("*", lhs, rhs)
-    def div(rhs: Any): ExprSentence = ExprSentence("div", lhs, rhs)
-  }
-
-  case class Int2Expr(lhs: Int) {
-    def +(rhs: Any): ExprSentence = ExprSentence("+", lhs, rhs)
-    def -(rhs: Any): ExprSentence = ExprSentence("-", lhs, rhs)
-    def *(rhs: Any): ExprSentence = ExprSentence("*", lhs, rhs)
-    def div(rhs: Any): ExprSentence = ExprSentence("div", lhs, rhs)
-  }
-
-  case class Double2Expr(lhs: Double) {
-    def +(rhs: Any): ExprSentence = ExprSentence("+", lhs, rhs)
-    def -(rhs: Any): ExprSentence = ExprSentence("-", lhs, rhs)
-    def *(rhs: Any): ExprSentence = ExprSentence("*", lhs, rhs)
-    def div(rhs: Any): ExprSentence = ExprSentence("div", lhs, rhs)
-  }
-
-  case class String2Expr(lhs: String) {
-    def +(rhs: Any): ExprSentence = ExprSentence("+", lhs, rhs)
-  }
-
-  def End = program.append(EndSentence())
 
   def evalExpr(expr: ExprSentence): Function0[Any] = {
     expr.op match {
