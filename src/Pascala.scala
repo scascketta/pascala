@@ -17,6 +17,9 @@ class Pascala extends App {
   case class ElseSentence() extends Sentence
   case class ExprSentence(op: String, lhs: Any, rhs: Any) extends Sentence
   case class AssignmentSentence(sym: Symbol, value: Any) extends Sentence
+  case class RandSentence(sym: Symbol, upper: Any) extends Sentence
+  case class SqrtSentence(sym: Symbol, num: Any) extends Sentence
+  case class EndWhileSentence() extends Sentence
 
   var program = new mutable.ArrayBuffer[Sentence]
 
@@ -24,6 +27,7 @@ class Pascala extends App {
   var ints = new mutable.HashMap[Symbol, Int]()
   var bools = new mutable.HashMap[Symbol, Boolean]()
   var strings = new mutable.HashMap[Symbol, String]()
+  val rng = new scala.util.Random()
 
   // for checking if a variable is declared before being assigned
   var declared = new mutable.HashMap[Symbol, Boolean]()
@@ -33,6 +37,8 @@ class Pascala extends App {
   def Begin = program.append(BeginSentence())
 
   def Var(fn: () => Symbol) = program.append(DeclareSentence(fn()))
+
+  def EndWhile() = program.append(EndWhileSentence())
 
   object If {
     def apply(cond: ExprSentence) = program.append(IfSentence(cond))
@@ -79,27 +85,28 @@ class Pascala extends App {
   case class EvalSymbol(lhs: Symbol) {
     def +(rhs: Int): Function0[Int] = () => ints(lhs) + rhs
     def +(rhs: Function0[Any]): Function0[Any] = {
-      if (rhs().isInstanceOf[Symbol]) {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) + ints(rhs().asInstanceOf[Symbol])
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) + doubles(rhs().asInstanceOf[Symbol])
-        } else if (strings.contains(lhs)) {
-          () => strings(lhs) + strings(rhs().asInstanceOf[Symbol])
-        } else {
-          throw new IllegalStateException("LHS must be a int, string, or double")
-        }
-      } else {
-        if (ints.contains(lhs)) {
-          () => ints(lhs) + rhs().asInstanceOf[Int]
-        } else if (doubles.contains(lhs)) {
-          () => doubles(lhs) + rhs().asInstanceOf[Double]
-        } else if (strings.contains(lhs)) {
-          () => strings(lhs) + rhs().asInstanceOf[String]
-        } else {
-          println(lhs)
-          throw new IllegalStateException("LHS must be a int, string, or double")
-        }
+      rhs() match {
+        case sym: Symbol =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) + ints(sym)
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) + doubles(sym)
+          } else if (strings.contains(lhs)) {
+            () => strings(lhs) + strings(sym)
+          } else {
+            throw new IllegalStateException("LHS must be a int, string, or double")
+          }
+        case _ =>
+          if (ints.contains(lhs)) {
+            () => ints(lhs) + rhs().asInstanceOf[Int]
+          } else if (doubles.contains(lhs)) {
+            () => doubles(lhs) + rhs().asInstanceOf[Double]
+          } else if (strings.contains(lhs)) {
+            () => strings(lhs) + rhs().asInstanceOf[String]
+          } else {
+            println(lhs)
+            throw new IllegalStateException("LHS must be a int, string, or double")
+          }
       }
     }
     def +(rhs: Double): Function0[Double] = () => doubles(lhs) + rhs
@@ -599,6 +606,16 @@ class Pascala extends App {
     def apply(expr: ExprSentence) = program.append(WriteSentence(expr))
   }
 
+  object Rand {
+    def apply(key: Symbol, upper: Int) = program.append(RandSentence(key, upper))
+    def apply(key: Symbol, sym: Symbol) = program.append(RandSentence(key, sym))
+  }
+
+  object Sqrt {
+    def apply(key: Symbol, num: Double) = program.append(SqrtSentence(key, num))
+    def apply(key: Symbol, sym: Symbol) = program.append(SqrtSentence(key, sym))
+  }
+
   def getSymVal(sym: Symbol) = {
     if (ints.contains(sym)) {
       ints(sym)
@@ -759,8 +776,18 @@ class Pascala extends App {
         execute(lines.slice(1, lines.length))
       }
       case ReadSentence(sym: Symbol) => {
-        val value = scala.io.StdIn.readLine()
-        assignment(sym, value)
+        val value = readLine()
+        try {
+          assignment(sym, value.toInt)
+        } catch {
+          case e: NumberFormatException => {
+            try {
+              assignment(sym, value.toDouble)
+            } catch {
+              case e: NumberFormatException => assignment(sym, value)
+            }
+          }
+        }
         execute(lines.slice(1, lines.length))
       }
       case ElseSentence() => {
@@ -805,7 +832,7 @@ class Pascala extends App {
         var block = new mutable.ArrayBuffer[Sentence]
         loop.breakable {
           for (sentence <- lines) {
-            if (sentence.isInstanceOf[EndSentence]) {
+            if (sentence.isInstanceOf[EndWhileSentence]) {
               block.append(sentence)
               loop.break()
             } else if (sentence.isInstanceOf[WhileSentence]){
@@ -822,6 +849,32 @@ class Pascala extends App {
         }
         execute(lines.slice(endIndex + 1, lines.length))
       }
+      case RandSentence(key: Symbol, upper: Any) => {
+        upper match {
+          case i: Int => assignment(key, rng.nextInt(i))
+          case sym: Symbol => {
+            if (ints.contains(sym)) {
+              assignment(key, rng.nextInt(ints(sym)))
+            } else if (doubles.contains(sym)) {
+              // return double between [0.0, 1,0]
+              assignment(key, rng.nextDouble)
+            }
+          }
+        }
+        execute(lines.slice(1, lines.length))
+      }
+      case EndWhileSentence() => {
+        if (lines.length > 1) {
+          execute(lines.slice(1, lines.length))
+        }
+      }
+      case SqrtSentence(key: Symbol, num: Any) => {
+        num match {
+          case d: Double => assignment(key, d)
+          case sym: Symbol => assignment(key, doubles(sym))
+        }
+        execute(lines.slice(1, lines.length))
+      }
     }
   }
 
@@ -832,4 +885,5 @@ class Pascala extends App {
   implicit def int2Expr(i: Int) = Int2Expr(i)
   implicit def double2Expr(d: Double) = Double2Expr(d)
   implicit def string2Expr(s: String) = String2Expr(s)
+
 }

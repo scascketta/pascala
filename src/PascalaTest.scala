@@ -305,7 +305,7 @@ object PascalaTest extends Pascala {
     Begin
     Writeln('x)
     'x := 'x + 1
-    End
+    EndWhile
     Writeln("")
 
     'x := 1
@@ -315,7 +315,7 @@ object PascalaTest extends Pascala {
     Begin
     Writeln('x)
     'x := 'x + 1
-    End
+    EndWhile
     Writeln("")
 
     'x := 2
@@ -325,7 +325,7 @@ object PascalaTest extends Pascala {
     Begin
     Writeln('x)
     'x := 'x + 2
-    End
+    EndWhile
     Writeln("")
 
     End
