@@ -1,19 +1,24 @@
 object PascalaDemo extends Pascala {
-  Program ("ApproxPi()")
+  Program ("ApproxPi")
 
-  Var('iterations)
+  Var('maxIterations)
   Var('squareLen)
   Var('radius)
   Var('centerX)
   Var('centerY)
-  Var('i)
+  Var('xSquared)
+  Var('ySquared)
+  Var('distSquared)
+  Var('dist)
 
   Var('pointX)
   Var('pointY)
 
-  Var('pi)
-
   Var('numInCircle)
+  Var('i)
+  Var('currentIterations)
+
+  Var('pi)
 
   Begin
 
@@ -23,43 +28,48 @@ object PascalaDemo extends Pascala {
   'centerY := 'squareLen div 2.0
   'numInCircle := 0.0
 
-  Writeln("Enter number of iterations to run: ")
-  Readln('iterations)
-  Writeln("# of iterations:")
-  Writeln('iterations)
+  Writeln("Enter upper bound of maxIterations to run (as a double): ")
+  Readln('maxIterations)
+  Writeln("# of maxIterations:")
+  Writeln('maxIterations)
 
-  'i := 0.0
-  While('i < 'iterations) ; Do
-    Begin
-      Rand('pointX, 'squareLen)
-      Rand('pointY, 'squareLen)
+  'currentIterations := 10.0
+  While('currentIterations <= 'maxIterations) ; Do
+  Begin
+      Writeln("Current iterations: ")
+      Writeln('currentIterations)
 
-      Var('xSquared)
-      'xSquared := 'pointX * 'pointX
+      'i := 0.0
+      'numInCircle := 0.0
+      While('i < 'currentIterations) ; Do
+      Begin
+          Rand('pointX, 'squareLen)
+          Rand('pointY, 'squareLen)
 
-      Var('ySquared)
-      'ySquared := 'pointY * 'pointY
+          'xSquared := 'pointX * 'pointX
+          'ySquared := 'pointY * 'pointY
+          'distSquared := 'xSquared + 'ySquared
 
-      Var('distSquared)
-      'distSquared := 'xSquared + 'ySquared
+          Sqrt('dist, 'distSquared)
 
-      Var('dist)
-      Sqrt('dist, 'distSquared)
+          If ('dist <= 'radius); Then
+            Begin
+              'numInCircle := 'numInCircle + 1.0
+            End
+          Else
+            Begin
+            End
 
-      If ('dist <= 'radius); Then
-        Begin
-          'numInCircle := 'numInCircle + 1.0
-        End
-      Else
-        Begin
-        End
+          'i := 'i + 1.0
+      EndWhile
 
-      'i := 'i + 1.0
-    EndWhile
+      'pi := ('numInCircle div 'currentIterations) * 4.0
+      Writeln("Approximation of pi:")
+      Writeln('pi)
 
-  'pi := ('numInCircle div 'iterations) * 4.0
-  Writeln("Approximation of pi:")
-  Writeln('pi)
+      'currentIterations := 'currentIterations * 10.0
+
+  EndWhile
 
   End
 

@@ -829,16 +829,25 @@ class Pascala extends App {
         val loop = new Breaks
         var endIndex = 0
         var sentence = BeginSentence
+        var beginCount = -1 // adjust for first begin
         var block = new mutable.ArrayBuffer[Sentence]
         loop.breakable {
-          for (sentence <- lines) {
-            if (sentence.isInstanceOf[EndWhileSentence]) {
-              block.append(sentence)
-              loop.break()
-            } else if (sentence.isInstanceOf[WhileSentence]){
-              // do nothing
-            } else {
-              block.append(sentence)
+          for (sentence <- lines.slice(1, lines.length)) {
+            sentence match {
+              case _: EndWhileSentence if beginCount == 0 =>
+                block.append(sentence)
+                loop.break()
+              case _: EndSentence =>
+                beginCount -= 1
+                block.append(sentence)
+              case _: EndWhileSentence =>
+                beginCount -= 1
+                block.append(sentence)
+              case _: BeginSentence =>
+                beginCount += 1
+                block.append(sentence)
+              case _ =>
+                block.append(sentence)
             }
             endIndex += 1
           }
