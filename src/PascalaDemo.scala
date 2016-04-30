@@ -23,9 +23,9 @@ object PascalaDemo extends Pascala {
   Begin
 
   'squareLen := 2.0;
-  'radius := 'squareLen div 2.0;
-  'centerX := 'squareLen div 2.0;
-  'centerY := 'squareLen div 2.0;
+  'radius := 'squareLen / 2.0;
+  'centerX := 'squareLen / 2.0;
+  'centerY := 'squareLen / 2.0;
   'numInCircle := 0.0;
 
   Writeln("Enter upper bound of maxIterations to run (as a double): ");
@@ -63,7 +63,7 @@ object PascalaDemo extends Pascala {
           'i := 'i + 1.0;
       End
 
-      'pi := ('numInCircle div 'currentIterations) * 4.0;
+      'pi := ('numInCircle / 'currentIterations) * 4.0;
       Writeln("Approximation of pi:");
       Writeln('pi);
 

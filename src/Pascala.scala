@@ -217,9 +217,9 @@ class Pascala extends App {
       }
     }
 
-    def div(rhs: Int): Function0[Int] = () => ints(lhs) / rhs
-    def div(rhs: Double): Function0[Double] = () => doubles(lhs) / rhs
-    def div(rhs: Function0[Any]): Function0[Any] = {
+    def /(rhs: Int): Function0[Int] = () => ints(lhs) / rhs
+    def /(rhs: Double): Function0[Double] = () => doubles(lhs) / rhs
+    def /(rhs: Function0[Any]): Function0[Any] = {
       rhs() match {
         case key: Symbol =>
           if (ints.contains(lhs)) {
@@ -227,7 +227,7 @@ class Pascala extends App {
           } else if (doubles.contains(lhs)) {
             () => doubles(lhs) / doubles(key)
           } else {
-            throw new IllegalStateException("Cannot use div operator with strings or booleans")
+            throw new IllegalStateException("Cannot use / operator with strings or booleans")
           }
         case _ =>
           if (ints.contains(lhs)) {
@@ -236,11 +236,11 @@ class Pascala extends App {
             () => doubles(lhs) / rhs().asInstanceOf[Double]
           } else {
             println(lhs)
-            throw new IllegalStateException("Cannot use div operator with strings or booleans")
+            throw new IllegalStateException("Cannot use / operator with strings or booleans")
           }
       }
     }
-    def div(rhs: Symbol): Function0[Any] = {
+    def /(rhs: Symbol): Function0[Any] = {
       if (ints.contains(rhs)) {
         () => ints(lhs) / ints(rhs)
       } else if (doubles.contains(rhs)) {
@@ -606,25 +606,25 @@ class Pascala extends App {
       }
     }
 
-    def div(rhs: Int): Function0[Int] = () => lhs().asInstanceOf[Int] / rhs
-    def div(rhs: Double): Function0[Double] = () => lhs().asInstanceOf[Double] / rhs
-    def div(rhs: Symbol): Function0[Any] = {
+    def /(rhs: Int): Function0[Int] = () => lhs().asInstanceOf[Int] / rhs
+    def /(rhs: Double): Function0[Double] = () => lhs().asInstanceOf[Double] / rhs
+    def /(rhs: Symbol): Function0[Any] = {
       if (ints.contains(rhs)) {
         () => lhs().asInstanceOf[Int] / ints(rhs)
       } else if (doubles.contains(rhs)) {
         () => lhs().asInstanceOf[Double] / doubles(rhs)
       } else {
-        throw new IllegalStateException("Cannot use division operator with booleans or strings.")
+        throw new IllegalStateException("Cannot use /ision operator with booleans or strings.")
       }
     }
-    def div(rhs: Function0[Any]): Function0[Any] = {
+    def /(rhs: Function0[Any]): Function0[Any] = {
       lhs() match {
         case i: Int =>
           () => i / rhs().asInstanceOf[Int]
         case d: Double =>
           () => d / rhs().asInstanceOf[Double]
         case _ =>
-          throw new IllegalStateException("Cannot use the division operator without ints or doubles.")
+          throw new IllegalStateException("Cannot use the /ision operator without ints or doubles.")
       }
     }
   }
@@ -633,7 +633,7 @@ class Pascala extends App {
     def +(rhs: Any): ExprSentence = ExprSentence("+", lhs, rhs)
     def -(rhs: Any): ExprSentence = ExprSentence("-", lhs, rhs)
     def *(rhs: Any): ExprSentence = ExprSentence("*", lhs, rhs)
-    def div(rhs: Any): ExprSentence = ExprSentence("div", lhs, rhs)
+    def /(rhs: Any): ExprSentence = ExprSentence("/", lhs, rhs)
     def <(rhs: Any): ExprSentence = ExprSentence("<", lhs, rhs)
     def >(rhs: Any): ExprSentence = ExprSentence(">", lhs, rhs)
     def >=(rhs: Any): ExprSentence = ExprSentence(">=", lhs, rhs)
@@ -645,19 +645,19 @@ class Pascala extends App {
     def +(rhs: Any): ExprSentence = ExprSentence("+", lhs, rhs)
     def -(rhs: Any): ExprSentence = ExprSentence("-", lhs, rhs)
     def *(rhs: Any): ExprSentence = ExprSentence("*", lhs, rhs)
-    def div(rhs: Any): ExprSentence = ExprSentence("div", lhs, rhs)
+    def /(rhs: Any): ExprSentence = ExprSentence("/", lhs, rhs)
   }
   case class Int2Expr(lhs: Int) {
     def +(rhs: Any): ExprSentence = ExprSentence("+", lhs, rhs)
     def -(rhs: Any): ExprSentence = ExprSentence("-", lhs, rhs)
     def *(rhs: Any): ExprSentence = ExprSentence("*", lhs, rhs)
-    def div(rhs: Any): ExprSentence = ExprSentence("div", lhs, rhs)
+    def /(rhs: Any): ExprSentence = ExprSentence("/", lhs, rhs)
   }
   case class Double2Expr(lhs: Double) {
     def +(rhs: Any): ExprSentence = ExprSentence("+", lhs, rhs)
     def -(rhs: Any): ExprSentence = ExprSentence("-", lhs, rhs)
     def *(rhs: Any): ExprSentence = ExprSentence("*", lhs, rhs)
-    def div(rhs: Any): ExprSentence = ExprSentence("div", lhs, rhs)
+    def /(rhs: Any): ExprSentence = ExprSentence("/", lhs, rhs)
   }
   case class String2Expr(lhs: String) {
     def +(rhs: Any): ExprSentence = ExprSentence("+", lhs, rhs)
@@ -698,10 +698,10 @@ class Pascala extends App {
           //case a:Any => EvalAny(a).-((() => expr.rhs))
         }
       }
-      case "div" => {
+      case "/" => {
         expr.lhs match {
-          case sym:Symbol => EvalSymbol(sym).div(() => expr.rhs)
-          case e:ExprSentence => EvalFunction0(evalExpr(e)).div(() => expr.rhs)
+          case sym:Symbol => EvalSymbol(sym)./(() => expr.rhs)
+          case e:ExprSentence => EvalFunction0(evalExpr(e))./(() => expr.rhs)
           //case a:Any => EvalAny(a).-((() => expr.rhs))
         }
       }

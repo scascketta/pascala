@@ -42,15 +42,15 @@ object PascalaTest extends Pascala {
     Writeln("")
 
     Writeln("Should be 4")
-    Writeln('int div 5)
+    Writeln('int / 5)
     Writeln("")
 
     Writeln("Should be 0")
-    Writeln('int div 'int2)
+    Writeln('int / 'int2)
     Writeln("")
 
     Writeln("Should be 2")
-    Writeln('int2 div 'int)
+    Writeln('int2 / 'int)
     Writeln("")
 
     End
@@ -84,7 +84,7 @@ object PascalaTest extends Pascala {
     Writeln("")
 
     Writeln("Should be 0.4285...")
-    Writeln('double div 'double2)
+    Writeln('double / 'double2)
     Writeln("")
 
     End
