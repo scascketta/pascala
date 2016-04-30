@@ -19,7 +19,6 @@ class Pascala extends App {
   case class AssignmentSentence(sym: Symbol, value: Any) extends Sentence
   case class RandSentence(sym: Symbol, upper: Any) extends Sentence
   case class SqrtSentence(sym: Symbol, num: Any) extends Sentence
-  case class EndWhileSentence() extends Sentence
 
   var program = new mutable.ArrayBuffer[Sentence]
 
@@ -37,8 +36,6 @@ class Pascala extends App {
   def Begin = program.append(BeginSentence())
 
   def Var(fn: () => Symbol) = program.append(DeclareSentence(fn()))
-
-  def EndWhile() = program.append(EndWhileSentence())
 
   object If {
     def apply(cond: ExprSentence) = program.append(IfSentence(cond))
@@ -844,13 +841,10 @@ class Pascala extends App {
         loop.breakable {
           for (sentence <- lines.slice(1, lines.length)) {
             sentence match {
-              case _: EndWhileSentence if beginCount == 0 =>
+              case _: EndSentence if beginCount == 0 =>
                 block.append(sentence)
                 loop.break()
               case _: EndSentence =>
-                beginCount -= 1
-                block.append(sentence)
-              case _: EndWhileSentence =>
                 beginCount -= 1
                 block.append(sentence)
               case _: BeginSentence =>
@@ -881,11 +875,6 @@ class Pascala extends App {
           }
         }
         execute(lines.slice(1, lines.length))
-      }
-      case EndWhileSentence() => {
-        if (lines.length > 1) {
-          execute(lines.slice(1, lines.length))
-        }
       }
       case SqrtSentence(key: Symbol, num: Any) => {
         num match {
