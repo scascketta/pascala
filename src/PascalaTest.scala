@@ -61,6 +61,14 @@ object PascalaTest extends Pascala {
     Writeln(3 + 'int)
     Writeln("")
 
+    Writeln("Should be 60")
+    Writeln(3 * 'int)
+    Writeln("")
+
+    Writeln("Should be 2")
+    Writeln(40 / 'int)
+    Writeln("")
+
     End
 
     RUN

@@ -508,6 +508,108 @@ class Pascala extends App {
         throw new IllegalStateException("Cannot use plus operator with booleans.")
       }
     }
+
+    def -(rhs: Int): Function0[Int] = () => lhs.asInstanceOf[Int] - rhs
+    def -(rhs: Function0[Any]): Function0[Any] = {
+      rhs() match {
+        case symbol: Symbol =>
+          lhs match {
+            case i: Int =>
+              () => i - ints(symbol)
+            case d: Double =>
+              () => d - doubles(symbol)
+            case _ =>
+              throw new IllegalStateException("LHS must be a int or double")
+          }
+        case _ =>
+          lhs match {
+            case i: Int =>
+              () => i - rhs().asInstanceOf[Int]
+            case d: Double =>
+              () => d - rhs().asInstanceOf[Double]
+            case _ =>
+              throw new IllegalStateException("LHS must be a int or double")
+          }
+      }
+    }
+    def -(rhs: Double): Function0[Double] = () => lhs.asInstanceOf[Double] - rhs
+    def -(rhs: Symbol): Function0[Any] = {
+      if (ints.contains(rhs)) {
+        () => lhs.asInstanceOf[Int] - ints(rhs)
+      } else if (doubles.contains(rhs)) {
+        () => lhs.asInstanceOf[Double] - doubles(rhs)
+      } else {
+        throw new IllegalStateException("Cannot use minus operator with booleans or strings.")
+      }
+    }
+
+    def *(rhs: Int): Function0[Int] = () => lhs.asInstanceOf[Int] * rhs
+    def *(rhs: Function0[Any]): Function0[Any] = {
+      rhs() match {
+        case symbol: Symbol =>
+          lhs match {
+            case i: Int =>
+              () => i * ints(symbol)
+            case d: Double =>
+              () => d * doubles(symbol)
+            case _ =>
+              throw new IllegalStateException("LHS must be a int or double")
+          }
+        case _ =>
+          lhs match {
+            case i: Int =>
+              () => i * rhs().asInstanceOf[Int]
+            case d: Double =>
+              () => d * rhs().asInstanceOf[Double]
+            case _ =>
+              throw new IllegalStateException("LHS must be a int or double")
+          }
+      }
+    }
+    def *(rhs: Double): Function0[Double] = () => lhs.asInstanceOf[Double] * rhs
+    def *(rhs: Symbol): Function0[Any] = {
+      if (ints.contains(rhs)) {
+        () => lhs.asInstanceOf[Int] * ints(rhs)
+      } else if (doubles.contains(rhs)) {
+        () => lhs.asInstanceOf[Double] * doubles(rhs)
+      } else {
+        throw new IllegalStateException("Cannot use times operator with booleans or strings.")
+      }
+    }
+
+    def /(rhs: Int): Function0[Int] = () => lhs.asInstanceOf[Int] / rhs
+    def /(rhs: Function0[Any]): Function0[Any] = {
+      rhs() match {
+        case symbol: Symbol =>
+          lhs match {
+            case i: Int =>
+              () => i / ints(symbol)
+            case d: Double =>
+              () => d / doubles(symbol)
+            case _ =>
+              throw new IllegalStateException("LHS must be a int or double")
+          }
+        case _ =>
+          lhs match {
+            case i: Int =>
+              () => i / rhs().asInstanceOf[Int]
+            case d: Double =>
+              () => d / rhs().asInstanceOf[Double]
+            case _ =>
+              throw new IllegalStateException("LHS must be a int or double")
+          }
+      }
+    }
+    def /(rhs: Double): Function0[Double] = () => lhs.asInstanceOf[Double] / rhs
+    def /(rhs: Symbol): Function0[Any] = {
+      if (ints.contains(rhs)) {
+        () => lhs.asInstanceOf[Int] / ints(rhs)
+      } else if (doubles.contains(rhs)) {
+        () => lhs.asInstanceOf[Double] / doubles(rhs)
+      } else {
+        throw new IllegalStateException("Cannot use division operator with booleans or strings.")
+      }
+    }
   }
 
   case class EvalFunction0(lhs: Function0[Any]) {
@@ -688,21 +790,21 @@ class Pascala extends App {
         expr.lhs match {
           case sym:Symbol => EvalSymbol(sym).-(() => expr.rhs)
           case e:ExprSentence => EvalFunction0(evalExpr(e)).-(() => expr.rhs)
-          //case a:Any => EvalAny(a).-((() => expr.rhs))
+          case a:Any => EvalAny(a).-((() => expr.rhs))
         }
       }
       case "*" => {
         expr.lhs match {
           case sym:Symbol => EvalSymbol(sym).*(() => expr.rhs)
           case e:ExprSentence => EvalFunction0(evalExpr(e)).*(() => expr.rhs)
-          //case a:Any => EvalAny(a).-((() => expr.rhs))
+          case a:Any => EvalAny(a).*((() => expr.rhs))
         }
       }
       case "/" => {
         expr.lhs match {
           case sym:Symbol => EvalSymbol(sym)./(() => expr.rhs)
           case e:ExprSentence => EvalFunction0(evalExpr(e))./(() => expr.rhs)
-          //case a:Any => EvalAny(a).-((() => expr.rhs))
+          case a:Any => EvalAny(a)./((() => expr.rhs))
         }
       }
       case "<" => {
