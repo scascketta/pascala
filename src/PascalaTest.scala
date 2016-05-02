@@ -53,6 +53,14 @@ object PascalaTest extends Pascala {
     Writeln('int2 / 'int)
     Writeln("")
 
+    Writeln("Should be 21")
+    Writeln('int + 3 * 5 / 15)
+    Writeln("")
+
+    Writeln("Should be 23")
+    Writeln(3 + 'int)
+    Writeln("")
+
     End
 
     RUN
