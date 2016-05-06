@@ -1,7 +1,9 @@
 # Pascala
 Ever wanted to write pseudo-Pascal inside Scala? Well, here it is anyway.
 
-# Usage
+Looking for a neat example of Pascala in action? Check out [PascalaDemo.scala](https://github.com/scascketta/pascala/blob/master/src/PascalaDemo.scala), a Pascala program that approximates π using a Monte Carlo algorithm.
+
+## Usage
 
 The first thing you need to know about Pascala is that it's an *internal* DSL, which means you have to write Pascala inside a Scala program.
 
@@ -17,6 +19,8 @@ object HelloWorld extends Pascala {
 ```
 
 Pascala extends Scala's [`App`](http://www.scala-lang.org/api/2.11.8/#scala.App) trait so you don't need to worry about any of that `main(args: Array[String])` boilerplate.
+
+## Language Features
 
 Here's some example code to explore the Pascala's features
 
