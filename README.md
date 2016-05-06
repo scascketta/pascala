@@ -25,7 +25,7 @@ Pascala extends Scala's [`App`](http://www.scala-lang.org/api/2.11.8/#scala.App)
 Here's some example code to explore the Pascala's features
 
 ```scala
-class Example extends Pascala {
+object Example extends Pascala {
   // Doesn't actually matter what arg you pass to Program
   Program("Example");
 
@@ -42,7 +42,7 @@ class Example extends Pascala {
   Begin
     // Writeln prints to stdout with a newline after your argument
     Writeln("Enter your name:")
-    // Readln reads from stdin and assigns the what it reads to the symbol passed as an arg
+    // Readln reads from stdin and assigns what it reads to the symbol passed as an arg
     // It supports parsing ints (e.g. 42), doubles (e.g. 3.14), and strings
     // It first tries to parse as an int, then a double, and then a string
     Readln('name);
@@ -74,7 +74,7 @@ class Example extends Pascala {
           Begin
             Writeln('i + 3 * 5 / 15);
           End
-
+        'j := 'j + 1
       End
       'i := 'i + 1
     End
